@@ -13,7 +13,7 @@ services:
       - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
       - plugins.security.disabled=false
       - plugins.security.ssl.http.enabled=false
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Uyenmit123@#
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin123@#
     ulimits:
       memlock:
         soft: -1
@@ -25,6 +25,7 @@ services:
       - "9600:9600"
     networks:
       - iot-net
+    restart: unless-stopped
 
   opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:3.2.0
@@ -35,6 +36,7 @@ services:
       OPENSEARCH_HOSTS: '["http://opensearch-node1:9200"]'
     networks:
       - iot-net
+    restart: unless-stopped
 
   # ========================
   # Logstash
@@ -65,7 +67,7 @@ services:
   emqx:
     image: emqx
     container_name: emqx
-    restart: always
+    restart: unless-stopped
     ports:
       - "1883:1883" # MQTT
       - "8081:8081" # WebSocket
@@ -106,6 +108,7 @@ services:
     networks:
       - iot-net
     entrypoint: ["sleep", "infinity"]
+    restart: unless-stopped
 
 volumes:
   opensearch-data:
