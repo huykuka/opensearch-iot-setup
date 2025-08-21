@@ -7,4 +7,3 @@ pipeline.workers: 2
 queue.max_bytes: 1gb
 queue.max_events: 0
 queue.type: memory
-xpack.monitoring.enabled: false
