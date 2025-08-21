@@ -1,0 +1,117 @@
+services:
+  # ========================
+  # OpenSearch
+  # ========================
+  opensearch-node1:
+    image: opensearchproject/opensearch:2.15.0
+    container_name: opensearch-node1
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node1
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+      - plugins.security.disabled=false
+      - plugins.security.ssl.http.enabled=false
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Uyenmit123@#
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - "9200:9200"
+      - "9600:9600"
+    networks:
+      - iot-net
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.15.0
+    container_name: opensearch-dashboards
+    ports:
+      - "5601:5601"
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch-node1:9200"]'
+    networks:
+      - iot-net
+
+  # ========================
+  # Logstash
+  # ========================
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: logstash
+    depends_on:
+      - opensearch-node1
+      - emqx
+    ports:
+      - "5044:5044" # Beats input
+      - "9601:9600" # Monitoring API
+    environment:
+      - "LS_JAVA_OPTS=-Xmx512m -Xms512m"
+      - "PIPELINE_WORKERS=2"
+    volumes:
+      - logstash-data:/usr/share/logstash/data
+      # - ./logstash/config:/usr/share/logstash/config
+      # - ./logstash/pipeline:/usr/share/logstash/pipeline
+    networks:
+      - iot-net
+    restart: unless-stopped
+
+  # ========================
+  # EMQX MQTT Broker
+  # ========================
+  emqx:
+    image: emqx:5.8.0
+    container_name: emqx
+    restart: always
+    ports:
+      - "1883:1883" # MQTT
+      - "8081:8081" # WebSocket
+      - "18083:18083" # Dashboard
+    environment:
+      EMQX_NAME: emqx
+      EMQX_HOST: 127.0.0.1
+      # Dashboard credentials
+      EMQX_DASHBOARD__DEFAULT_USERNAME: admin
+    volumes:
+      - mqtt-data:/opt/emqx/data
+    networks:
+      - iot-net
+
+  # ========================
+  # Filebeat - Log Collection
+  # ========================
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.19.0
+    container_name: filebeat
+    user: root
+    depends_on:
+      - logstash
+      - emqx
+    volumes:
+      - filebeat-data:/usr/share/filebeat
+    networks:
+      - iot-net
+    restart: unless-stopped
+  # ========================
+  # Helper container for testing MQTT
+  # ========================
+  mqtt-client:
+    image: eclipse-mosquitto:2.0
+    container_name: mqtt-client
+    depends_on:
+      - emqx
+    networks:
+      - iot-net
+    entrypoint: ["sleep", "infinity"]
+
+volumes:
+  opensearch-data:
+  mqtt-data:
+  filebeat-data:
+  logstash-data:
+
+networks:
+  iot-net:

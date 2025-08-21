@@ -1,0 +1,22 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/energy-devices/*.log
+
+- type: mqtt
+  enabled: true
+  hosts:
+    - "emqx:1883"
+  topics:
+    - "energy/+/data"
+    - "energy/+/logs" 
+    - "system/+/status"
+  qos: 1
+  client_id: "filebeat-collector"
+  username: "filebeat"
+  password: "filebeat123"
+  clean_session: true
+
+output.logstash:
+  hosts: ["logstash:5044"]
