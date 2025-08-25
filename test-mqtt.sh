@@ -15,7 +15,7 @@ while true; do
         
         # Generate sample energy data
         voltage=$(awk "BEGIN {printf \"%.2f\", 220 + ($RANDOM % 20)}")
-        current=$(awk "BEGIN {printf \"%.2f\", 5 + ($RANDOM % 10)}")
+        current=$(awk -v s=$RANDOM 'BEGIN{srand(s); printf "%.2f", rand()*20 }')
         power=$(awk "BEGIN {printf \"%.2f\", $voltage * $current}")
         energy=$(awk "BEGIN {printf \"%.2f\", $power * 0.1}")
         frequency=50.0
@@ -39,7 +39,7 @@ EOF
         
         # Publish to MQTT with authentication
         docker exec mqtt-client mosquitto_pub \
-            -h emqx \
+            -h admin-pc.tail413f7a.ts.net \
             -p 1883 \
             -t "energy/$device/data" \
             -m "$payload"
