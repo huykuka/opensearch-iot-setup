@@ -12,10 +12,8 @@ filebeat.inputs:
     - "energy/+/data"
     - "energy/+/logs" 
     - "system/+/status"
-  qos: 1
-  client_id: "filebeat-collector"
-  username: "filebeat"
-  password: "filebeat123"
+  qos: 2
+  client_id: "filebeat"
   clean_session: true
 
 output.logstash:

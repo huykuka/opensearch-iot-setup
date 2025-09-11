@@ -13,13 +13,15 @@ services:
       - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
       - plugins.security.disabled=false
       - plugins.security.ssl.http.enabled=false
-      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=admin123@#
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=Uyenmit123@#
     ulimits:
       memlock:
         soft: -1
         hard: -1
     volumes:
       - opensearch-data:/usr/share/opensearch/data
+      - opensearch-config:/usr/share/opensearch/config
+      - opensearch-plugins:/usr/share/opensearch/plugins
     ports:
       - "9200:9200"
       - "9600:9600"
@@ -32,7 +34,13 @@ services:
     container_name: opensearch-dashboards
     ports:
       - "5601:5601"
+    volumes:
+      - dashboards-config:/usr/share/opensearch-dashboards/config
+      - dashboards-plugins:/usr/share/opensearch-dashboards/plugins
+      - ./assets:/usr/share/opensearch-dashboards/src/core/server/core_app/assets
+      - ./opensearch_dashboard.yml:/usr/share/opensearch-dashboards/config/opensearch_dashboards.yml
     environment:
+      I18N_LOCALE: de-DE
       OPENSEARCH_HOSTS: '["http://opensearch-node1:9200"]'
     networks:
       - iot-net
@@ -115,6 +123,10 @@ volumes:
   mqtt-data:
   filebeat-data:
   logstash-data:
+  dashboards-plugins:
+  dashboards-config:
+  opensearch-config:
+  opensearch-plugins:
 
 networks:
   iot-net:
